@@ -10,6 +10,9 @@ using System.Windows.Forms;
 
 namespace FashionDesign
 {
+    /// <summary>
+    /// Contains controls to display and manipulate over Dress object 
+    /// </summary>
     public partial class Form1 : Form
     {
         GeneticAlgorithm ga;
@@ -20,20 +23,25 @@ namespace FashionDesign
             ga.Initializing(this);
         }
         int generationnum = 0;
-        private void button1_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Raises event which generates new population of dresses and displays them on Form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button2_Click(object sender, EventArgs e)
         {
             int i = 0;
             foreach (Control item in ga.panel.Controls.OfType<DressImage>())
             {
-                    GeneticAlgorithm.dresspopulation[i].fitness=Int32.Parse((item as DressImage).textBox1.Text);
-                    i++;
+                GeneticAlgorithm.dresspopulation[i].fitness = Int32.Parse((item as DressImage).textBox1.Text);
+                i++;
             }
-            if (generationnum < 3)
+            if (generationnum < 2)
             {
-                if(generationnum==2) this.button1.Text = "result";
+                if (generationnum == 1) this.button2.Text = "result";
                 ga.GeneratePopulation(this);
             }
-            
+
             else
             {
                 ga.ShowDressonForm(GeneticAlgorithm.dressimages, this, true);
@@ -47,6 +55,6 @@ namespace FashionDesign
                 }
             }
         }
-
     }
 }
+ 

@@ -6,9 +6,14 @@ using System.Threading.Tasks;
 
 namespace FashionDesign
 {
-    
-        static class RandomGenerator
+        /// <summary>
+        /// Represents a pseudo-random number generating tool
+        /// </summary>
+        public static class RandomGenerator
         {
+        /// <summary>
+        /// Static field that represents object of Random class
+        /// </summary>
             public static Random rnd = new Random();
         }
     

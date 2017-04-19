@@ -10,8 +10,13 @@ using System.Windows.Forms;
 
 namespace FashionDesign
 {
+    /// <summary>
+    /// Represents a UserControl that displays dress components in PictuBoxes.
+    /// </summary>
     public partial class DressImage : UserControl
     {
+        /// <summary>
+        /// The class constructor. </summary>
         public DressImage()
         {
             InitializeComponent();

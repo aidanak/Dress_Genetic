@@ -7,31 +7,63 @@ using System.Windows.Forms;
 using System.Drawing;
 namespace FashionDesign
 {
+    /// <summary>
+    /// Represents fields and methods that generate new population of dress and displays them on the form 
+    /// </summary>
     public class GeneticAlgorithm
     {
+        /// <summary>
+        /// Represents a List object that contains Dress objects and stores each population of dresses
+        /// </summary>
         public static List<Dress> dresspopulation = new List<Dress>();
+        /// <summary>
+        /// Represents a List object that contains objects of DressImage UserControl 
+        /// </summary>
         public static List<DressImage> dressimages = new List<DressImage>();
+        /// <summary>
+        /// Represents a field of type Panel that contains DressImage UserControls
+        /// </summary>
         public Panel panel;
-        public static Dictionary<string, Color> color = new Dictionary<string, Color>();
+        /// <summary>
+        /// Generate initial population of dresses and displays them on form
+        /// </summary>
+        /// <param name="form">Form object that contains panel which displays DressImage UserControl</param>
         public void Initializing(Form form)
         {
-            color.Add("000", Color.Red);
-            color.Add("001", Color.Blue);
-            color.Add("010", Color.Green);
-            color.Add("011", Color.Yellow);
-            color.Add("100", Color.Black);
-            color.Add("101", Color.Orange);
-            color.Add("110", Color.Magenta);
-            color.Add("111", Color.Navy);
-            for (int i = 0; i < 8; i++)
+            int i = 0;
+            while(true)
             {
+                if (i == 4)
+                {
+                    break;
+                }
+                bool bl = false;
                 Dress dress = new Dress();
                 DressImage di = dress.CreateDressControl();
-                dressimages.Add(di);
-                dresspopulation.Add(dress);
+                for (int j = 0; j < dresspopulation.Count; j++)
+                {
+                    if (dress.bincode == dresspopulation[j].bincode)
+                    {
+                        bl = true;
+
+                    }
+                }
+                if (!bl)
+                {
+                    dressimages.Add(di);
+                    dresspopulation.Add(dress);
+                    i++;
+                }
+                    
             }
             ShowDressonForm(dressimages, form,false);
         }
+        /// <summary>
+        /// Displays objects of DressImage on Panel object which is one of the controls of Form
+        /// </summary>
+        /// <param name="dressimages">Parameter of type List that contains objects of DressImage UserControl</param>
+        /// <param name="form">Parameter of type Form that contains panel which displays DressImage UserControl</param>
+        /// <param name="isFinal">Parameter of type bool which indictes whether it is the last generation</param>
         public void ShowDressonForm(List<DressImage> dressimages, Form form,bool isFinal)
         {
             foreach (Control d in form.Controls)
@@ -42,190 +74,132 @@ namespace FashionDesign
                 }
             }
             panel = new Panel();
-            panel.Size = new Size(994, 780);
+            panel.Size = new Size(540, 680);
             if (!isFinal)
             {
-                int x = 2;
-                int y = 2;
-                for (int i = 0; i < 8; i++)
+                int x = 0;
+                int y = 0;
+                for (int i = 0; i < 4; i++)
                 {
                     dressimages[i].Location = new Point(x, y);
-                    x += 250;
-                    if (x >= 1000)
+                    x += 265;
+                    if (x >= 530)
                     {
-                        x = 2;
-                        y += 300;
+                        x = 0;
+                        y += 340;
                     }
                     panel.Controls.Add(dressimages[i]);
                 }
             }
             else
             {
+                dresspopulation.Sort();
                 DressImage dressimage = dresspopulation[0].CreateDressControl();
-                dressimage.Location = new Point(360, 250);
+                dressimage.Location = new Point(145, 10);
+                foreach(Control c in form.Controls)
+                {
+                    if(c is Button)
+                    {
+                        form.Controls.Remove(c);
+                    }
+                }
                 dressimage.textBox1.Text = dresspopulation[0].fitness.ToString();
                 panel.Controls.Add(dressimage);
+                List <PictureBox> realdress=DressSearcher.SearchDressFromDatabase(dresspopulation[0].bincode);
+                int x = 30;
+                foreach (PictureBox p in realdress)
+                {
+                    p.Location=new Point(x, 360);
+                    p.Size = new Size(180, 300);
+                    x += 190;
+                    panel.Controls.Add(p);
+                }
                 
             }
             form.Controls.Add(panel);
         }
+        /// <summary>
+        /// Generates new population of Dress object and displays them on Form 
+        /// </summary>
+        /// <param name="form">Parameter of type Form that contains panel which displays DressImage UserControl</param>
         public void GeneratePopulation(Form form)
         {
             int bl;
             dresspopulation.Sort();
             List<string> children = new List<string>();
-            string child;
-            for (int i = 1; i < 5; i++)
+            children.Add(dresspopulation[0].bincode);
+            for (int i = 1; i <=3; i++)
             {
                 bl = RandomGenerator.rnd.Next(0, 1);
                 if (bl == 0)
                 {
-                    child = Mutate(Crossover(dresspopulation[0].bincode, dresspopulation[i].bincode));
-                    while (!CheckIfDressExists(child))
-                    {
-                        child= Mutate(Crossover(dresspopulation[0].bincode, dresspopulation[i].bincode));
-                    }
-                    children.Add(child);
+                   GenerateDress(children,dresspopulation[0].bincode, dresspopulation[i].bincode); 
                 }
                 else
                 {
-                    child = Mutate(Crossover(dresspopulation[i].bincode, dresspopulation[0].bincode));
-                    while (!CheckIfDressExists(child))
-                    {
-                        child = Mutate(Crossover(dresspopulation[i].bincode, dresspopulation[0].bincode));
-                    }
-                    children.Add(child);
+                   GenerateDress(children, dresspopulation[i].bincode, dresspopulation[0].bincode);
                 }
             }
-            for (int i = 2; i < 4; i++)
-            {
-                bl = RandomGenerator.rnd.Next(0, 1);
-                if (bl == 0)
-                {
-                    child = Mutate(Crossover(dresspopulation[1].bincode, dresspopulation[i].bincode));
-                    while (!CheckIfDressExists(child))
-                    {
-                        child = Mutate(Crossover(dresspopulation[1].bincode, dresspopulation[i].bincode));
-                    }
-                    children.Add(child);
-                }
-                else
-                {
-                    child = Mutate(Crossover(dresspopulation[i].bincode, dresspopulation[1].bincode));
-                    while (!CheckIfDressExists(child))
-                    {
-                        child = Mutate(Crossover(dresspopulation[i].bincode, dresspopulation[1].bincode));
-                    }
-                    children.Add(child);
-                }
-            }
-            for (int i = 3; i < 5; i++)
-            {
-                bl = RandomGenerator.rnd.Next(0, 1);
-                if (bl == 0)
-                {
-                    child = Mutate(Crossover(dresspopulation[2].bincode, dresspopulation[i].bincode));
-                    while (!CheckIfDressExists(child))
-                    {
-                        child = Mutate(Crossover(dresspopulation[2].bincode, dresspopulation[i].bincode));
-                    }
-                    children.Add(child);
-                }
-                else
-                {
-                    child = Mutate(Crossover(dresspopulation[i].bincode, dresspopulation[2].bincode));
-                    while (!CheckIfDressExists(child))
-                    {
-                        child = Mutate(Crossover(dresspopulation[i].bincode, dresspopulation[2].bincode));
-                    }
-                    children.Add(child);
-                }
-            }
+           
             dresspopulation.Clear();
             dressimages.Clear();
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 4; i++)
             {
-                dresspopulation.Add(ConvertStringToDress(children[i]));
-                DressImage dress = ConvertStringToDress(children[i]).CreateDressControl();
+                dresspopulation.Add(Parser.ParseStringToDress(children[i]));
+                DressImage dress = Parser.ParseStringToDress(children[i]).CreateDressControl();
                 dressimages.Add(dress);
             }
             ShowDressonForm(dressimages, form,false);
         }
-        public bool CheckIfDressExists(string child)
+        /// <summary>
+        /// Creates new Dress object resulted from Crossover and Mutation operations of two Dress objects from previous generation 
+        /// </summary>
+        /// <param name="children">Parameter of type List which stores binarycode of generated Dress objects</param>
+        /// <param name="parent1">Parameter of type string which defines binarycode of the first parent of generated dress</param>
+        /// <param name="parent2">Parameter of type string which defines binarycode of the second parent of generated dress</param>
+        public void GenerateDress(List <string> children,string parent1,string parent2)
         {
-            string body = "", sleeve = "", skirt = "";
-            for (int i = 0; i < 23; i++)
+            string child;
+            while (true)
             {
-                if (i < 6)
+                child = Mutate(Crossover(parent1, parent2));
+                if (ExistenceChecker.CheckIfDressExists(child) && !children.Contains(child))
                 {
-                    body += child[i];
+                    break;
                 }
-                else if (i >= 9 && i < 13)
-                {
-                    sleeve += child[i];
-                }
-                else if (i >= 16 && i < 20)
-                {
-                    skirt += child[i];
-                }
+                
             }
-            if (Convert.ToInt32(body, 2) > 33 || Convert.ToInt32(sleeve, 2) > 7 || Convert.ToInt32(skirt, 2) > 7)
-            {
-                return false;
-            }
-            return true;
+            children.Add(child);
         }
-        public Dress ConvertStringToDress(string child)
-        {
-            string body="", sleeve="", skirt="",skirtcol="",sleevecol="",bodycol="";
-            for(int i = 0; i < 23; i++)
-            {
-                if (i < 6)
-                {
-                    body += child[i];
-                }
-                else if(i>=6 && i < 9)
-                {
-                    bodycol += child[i];
-                }
-                else if(i>=9 && i < 13)
-                {
-                    sleeve += child[i];
-                }
-                else if(i>=13 && i < 16)
-                {
-                    sleevecol += child[i];
-                }
-                else if(i>=16 && i < 20)
-                {
-                    skirt += child[i];
-                }
-                else if(i>=20 && i <= 23)
-                {
-                    skirtcol += child[i];
-                }
-            }
-            Dress dress = new Dress(body, bodycol, sleeve, sleevecol, skirt, skirtcol,child);
-            return dress;
-        }
+        /// <summary>
+        /// Randomly combines bits of first parent and bits of second parent to generate new dress
+        /// </summary>
+        /// <param name="p1">Binarycode of first parent</param>
+        /// <param name="p2">Binaryycode of second parent </param>
+        /// <returns>Binarycode of generated dress</returns>
         public string Crossover(string p1,string p2)
         {
             string child = "";
-            int separator=RandomGenerator.rnd.Next(0, 22);
+            int separator=RandomGenerator.rnd.Next(0, 8);
             for(int i = 0; i < separator; i++)
             {
                 child += p1[i];
             }
-            for(int i = separator; i < 23; i++)
+            for(int i = separator; i < 9; i++)
             {
                 child += p2[i];
             }
             return child;
         }
+        /// <summary>
+        /// Changes one random bit of generated dress
+        /// </summary>
+        /// <param name="child">Binarycode of generated dress</param>
+        /// <returns>Binarycode of generated dress</returns>
         public string Mutate(string child)
         {
             StringBuilder sb = new StringBuilder(child);
-            int mutationind= RandomGenerator.rnd.Next(0, 22);
+            int mutationind= RandomGenerator.rnd.Next(0, 8);
             if (child[mutationind] == '0')
             {
                 sb[mutationind] = '1';
